@@ -1,0 +1,46 @@
+# Data Handling and progress bars
+numpy
+pandas
+scikit-learn
+matplotlib
+tqdm
+
+# Add build dependencies to avoid errors
+setuptools
+wheel
+
+# Core Libraries
+torch
+torchvision
+
+# Medical Imaging Libraries
+monai
+nibabel
+SimpleITK
+
+# Experiment Tracking and pipeline versioning
+wandb
+dvc
+
+# User interface
+streamlit
+
+# Image Augmentation & Preprocessing
+albumentations
+opencv-python
+
+# Miscellaneous utils
+jupyter
+notebook
+python-box
+pyYAML
+ensure
+joblib
+python-dotenv
+
+# code formatting
+black
+isort
+black[jupyter]
+
+-e .
