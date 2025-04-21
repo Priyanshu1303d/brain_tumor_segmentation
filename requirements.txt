@@ -4,6 +4,7 @@ pandas
 scikit-learn
 matplotlib
 tqdm
+einops
 
 # Add build dependencies to avoid errors
 setuptools
