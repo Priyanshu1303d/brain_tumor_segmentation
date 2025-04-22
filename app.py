@@ -8,7 +8,6 @@ from monai.networks.nets import SwinUNETR
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-os.environ["PYTORCH_JIT"] = "0"
 
 # -------------------- CONFIG --------------------
 IMG_SIZE = (96, 96, 96)
@@ -86,6 +85,30 @@ def is_valid_nifti(file):
                 os.remove(temp_path)
     except:
         return False
+
+# Function to find slices containing tumor
+def find_tumor_slices(pred_volume):
+    """Find slices that contain tumor tissue in each dimension"""
+    tumor_slices = {
+        "Axial": [],
+        "Coronal": [],
+        "Sagittal": []
+    }
+    
+    # Find tumor slices in each dimension
+    for z in range(pred_volume.shape[2]):
+        if np.any(pred_volume[:, :, z] > 0):
+            tumor_slices["Axial"].append(z)
+    
+    for y in range(pred_volume.shape[1]):
+        if np.any(pred_volume[:, y, :] > 0):
+            tumor_slices["Coronal"].append(y)
+            
+    for x in range(pred_volume.shape[0]):
+        if np.any(pred_volume[x, :, :] > 0):
+            tumor_slices["Sagittal"].append(x)
+    
+    return tumor_slices
 
 # Initialize sidebar
 st.sidebar.title("Configuration")
@@ -198,8 +221,14 @@ if len(modality_files) == 4 and model is not None:
                     with torch.no_grad():
                         output = model(image)
                         pred = torch.argmax(output, dim=1).squeeze(0).cpu().numpy()
-                        
-                    # Get reference image and create visualization
+                    
+                    # Check if tumor is present
+                    tumor_present = np.any(pred > 0)
+                    
+                    # Find tumor slices in each dimension
+                    tumor_slices = find_tumor_slices(pred)
+                    
+                    # Get reference image
                     ref_img = image.squeeze(0)[0].cpu().numpy()  # T1n as reference
                     
                     # Create segmentation visualization
@@ -233,20 +262,63 @@ if len(modality_files) == 4 and model is not None:
                                 for i, class_name in enumerate(CLASS_NAMES):
                                     if i > 0:  # Skip background
                                         class_visibility[i] = st.checkbox(f"{class_name}", value=True)
+                                
+                                # Display tumor slice information
+                                if tumor_present:
+                                    st.markdown("### Tumor Slices")
+                                    st.write(f"Tumor detected in:")
+                                    if tumor_slices[view_type]:
+                                        st.write(f"- {view_type}: {len(tumor_slices[view_type])} slices")
+                                        if len(tumor_slices[view_type]) <= 10:
+                                            st.write(f"  Slices: {', '.join(map(str, tumor_slices[view_type]))}")
+                                        else:
+                                            st.write(f"  Range: {min(tumor_slices[view_type])} - {max(tumor_slices[view_type])}")
+                                        
+                                        # Add a selector for tumor slices
+                                        if len(tumor_slices[view_type]) > 0:
+                                            st.markdown("**Jump to tumor slice:**")
+                                            tumor_slice_idx = st.selectbox(
+                                                "Select tumor slice", 
+                                                tumor_slices[view_type],
+                                                format_func=lambda i: f"Slice {i}"
+                                            )
+                                else:
+                                    st.info("No tumor detected in this scan.")
                             
                             with view_col:
+                                # If tumor is present and there are tumor slices in this view,
+                                # default to showing a tumor slice instead of middle slice
+                                default_slice = None
+                                if tumor_present and tumor_slices[view_type]:
+                                    default_slice = tumor_slices[view_type][len(tumor_slices[view_type])//2]
+                                
                                 if view_type == "Axial":
-                                    slice_idx = st.slider("Axial Slice", 0, selected_img.shape[2]-1, selected_img.shape[2]//2)
+                                    if default_slice is None:
+                                        default_slice = selected_img.shape[2]//2
+                                    slice_idx = st.slider("Axial Slice", 0, selected_img.shape[2]-1, default_slice)
                                     img_slice = selected_img[:, :, slice_idx]
                                     pred_slice = pred[:, :, slice_idx]
+                                    # Add indicator if tumor is present in this slice
+                                    if slice_idx in tumor_slices["Axial"]:
+                                        st.success("⚠️ Tumor present in this slice")
                                 elif view_type == "Coronal":
-                                    slice_idx = st.slider("Coronal Slice", 0, selected_img.shape[1]-1, selected_img.shape[1]//2)
+                                    if default_slice is None:
+                                        default_slice = selected_img.shape[1]//2
+                                    slice_idx = st.slider("Coronal Slice", 0, selected_img.shape[1]-1, default_slice)
                                     img_slice = selected_img[:, slice_idx, :]
                                     pred_slice = pred[:, slice_idx, :]
+                                    # Add indicator if tumor is present in this slice
+                                    if slice_idx in tumor_slices["Coronal"]:
+                                        st.success("⚠️ Tumor present in this slice")
                                 else:  # Sagittal
-                                    slice_idx = st.slider("Sagittal Slice", 0, selected_img.shape[0]-1, selected_img.shape[0]//2)
+                                    if default_slice is None:
+                                        default_slice = selected_img.shape[0]//2
+                                    slice_idx = st.slider("Sagittal Slice", 0, selected_img.shape[0]-1, default_slice)
                                     img_slice = selected_img[slice_idx, :, :]
                                     pred_slice = pred[slice_idx, :, :]
+                                    # Add indicator if tumor is present in this slice
+                                    if slice_idx in tumor_slices["Sagittal"]:
+                                        st.success("⚠️ Tumor present in this slice")
                                 
                                 # Create visualization figure
                                 fig, ax = plt.subplots(figsize=(10, 10))
@@ -276,34 +348,35 @@ if len(modality_files) == 4 and model is not None:
                             total_voxels = pred.size
                             tumor_percentage = (tumor_voxels / total_voxels) * 100
                             
-                            # Create tumor class distribution
-                            classes = np.unique(pred)
-                            class_counts = {int(c): np.sum(pred == c) for c in classes}
-                            
-                            # Display statistics
-                            col1, col2 = st.columns(2)
-                            
-                            with col1:
-                                st.metric("Total Tumor Voxels", f"{tumor_voxels:,}")
-                                st.metric("Tumor Volume Percentage", f"{tumor_percentage:.2f}%")
-                            
-                            with col2:
-                                # Calculate approximate volume in cm³ (assuming 1mm³ voxels)
-                                # This is a rough estimate - would need actual voxel dimensions for accuracy
-                                voxel_volume_mm3 = 1.0  # Placeholder
-                                tumor_volume_mm3 = tumor_voxels * voxel_volume_mm3
-                                tumor_volume_cm3 = tumor_volume_mm3 / 1000.0
+                            # Only show detailed results if tumor is present
+                            if tumor_present:
+                                # Create tumor class distribution
+                                classes = np.unique(pred)
+                                class_counts = {int(c): np.sum(pred == c) for c in classes}
                                 
-                                st.metric("Estimated Tumor Volume", f"{tumor_volume_cm3:.2f} cm³")
-                            
-                            # Display class distribution chart
-                            st.subheader("Tumor Class Distribution")
-                            
-                            # Prepare data for pie chart
-                            class_labels = [CLASS_NAMES[int(c)] for c in classes if c > 0]  # Exclude background
-                            class_values = [class_counts[int(c)] for c in classes if c > 0]
-                            
-                            if len(class_values) > 0:
+                                # Display statistics
+                                col1, col2 = st.columns(2)
+                                
+                                with col1:
+                                    st.metric("Total Tumor Voxels", f"{tumor_voxels:,}")
+                                    st.metric("Tumor Volume Percentage", f"{tumor_percentage:.2f}%")
+                                
+                                with col2:
+                                    # Calculate approximate volume in cm³ (assuming 1mm³ voxels)
+                                    # This is a rough estimate - would need actual voxel dimensions for accuracy
+                                    voxel_volume_mm3 = 1.0  # Placeholder
+                                    tumor_volume_mm3 = tumor_voxels * voxel_volume_mm3
+                                    tumor_volume_cm3 = tumor_volume_mm3 / 1000.0
+                                    
+                                    st.metric("Estimated Tumor Volume", f"{tumor_volume_cm3:.2f} cm³")
+                                
+                                # Display class distribution chart
+                                st.subheader("Tumor Class Distribution")
+                                
+                                # Prepare data for pie chart
+                                class_labels = [CLASS_NAMES[int(c)] for c in classes if c > 0]  # Exclude background
+                                class_values = [class_counts[int(c)] for c in classes if c > 0]
+                                
                                 fig, ax = plt.subplots(figsize=(10, 6))
                                 colors = [CLASS_COLORS[i][:3] for i in classes if i > 0]  # RGB part of RGBA
                                 ax.pie(class_values, labels=class_labels, autopct='%1.1f%%', 
@@ -326,6 +399,17 @@ if len(modality_files) == 4 and model is not None:
                                         })
                                 
                                 st.table(class_data)
+                                
+                                # Tumor location summary
+                                st.subheader("Tumor Location")
+                                st.write("Tumor slices by view:")
+                                
+                                for view_name, slices in tumor_slices.items():
+                                    if slices:
+                                        if len(slices) <= 10:
+                                            st.write(f"- **{view_name}**: Slices {', '.join(map(str, slices))}")
+                                        else:
+                                            st.write(f"- **{view_name}**: {len(slices)} slices, range {min(slices)}-{max(slices)}")
                             else:
                                 st.info("No tumor detected in the scan.")
                     else:

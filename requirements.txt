@@ -1,6 +1,8 @@
 # Data Handling and progress bars
 numpy
 pandas
+matplotlib
+seaborn
 scikit-learn
 matplotlib
 tqdm
