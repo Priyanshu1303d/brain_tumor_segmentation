@@ -495,4 +495,4 @@ with st.expander("About this app"):
 
 # Add a footer
 st.markdown("---")
-st.markdown("**Brain Tumor Segmentation Project** • Powered by MONAI & Streamlit")
+st.markdown("**Brain Tumor Segmentation Project** • Powered by MONAI & Streamlit • Report any [issues](https://github.com/sanskarmodi8/brain_tumor_segmentation/issues)")
