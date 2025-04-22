@@ -21,7 +21,9 @@ CLASS_COLORS = [(0, 0, 0, 0), (1, 0, 0, 0.7), (0, 1, 0, 0.7), (0, 0, 1, 0.7)]  #
 # -------------------- STREAMLIT UI --------------------
 st.set_page_config(layout="wide", page_title="Brain Tumor Segmentation")
 st.title("🧠 Brain Tumor Segmentation")
+st.write("")
 st.write("Upload MRI scans to detect and visualize brain tumors")
+st.markdown("---")
 
 # -------------------- TRANSFORMS --------------------
 @st.cache_resource
@@ -494,5 +496,6 @@ with st.expander("About this app"):
     """)
 
 # Add a footer
+st.write("")
 st.markdown("---")
 st.markdown("**Brain Tumor Segmentation Project** • Powered by MONAI & Streamlit • Report any [issues](https://github.com/sanskarmodi8/brain_tumor_segmentation/issues)")
