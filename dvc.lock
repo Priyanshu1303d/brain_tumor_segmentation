@@ -1,0 +1,29 @@
+schema: '2.0'
+stages:
+  data_preprocessing:
+    cmd: python src/BrainTumorSegmentation/pipeline/stage_01_data_preprocessing.py
+    deps:
+    - path: config/config.yaml
+      hash: md5
+      md5: b080eb0578a420bd052bae90f9141eb2
+      size: 173
+    - path: src/BrainTumorSegmentation/components/data_preprocessing.py
+      hash: md5
+      md5: cca45cd444f7fba465129ec6314fbfc1
+      size: 4154
+    - path: src/BrainTumorSegmentation/pipeline/stage_01_data_preprocessing.py
+      hash: md5
+      md5: a55311514fdac2ee5e7b430b3990ee42
+      size: 1161
+    params:
+      params.yaml:
+        img_size:
+        - 96
+        - 96
+        - 96
+    outs:
+    - path: artifacts/data_preprocessing/
+      hash: md5
+      md5: abef1e63703a40644f6099bd7167d2c6.dir
+      size: 4762765706
+      nfiles: 8105

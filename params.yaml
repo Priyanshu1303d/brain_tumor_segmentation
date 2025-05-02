@@ -1,0 +1,4 @@
+# parameters used throughout the project
+
+# preprocessing parameters
+img_size: [96, 96, 96]

@@ -1,0 +1,13 @@
+stages:
+
+  data_preprocessing:
+    cmd: python src/BrainTumorSegmentation/pipeline/stage_01_data_preprocessing.py
+    deps:
+      - src/BrainTumorSegmentation/pipeline/stage_01_data_preprocessing.py
+      - src/BrainTumorSegmentation/components/data_preprocessing.py
+      - config/config.yaml
+    params:
+      - img_size
+    outs:
+      - artifacts/data_preprocessing/
+

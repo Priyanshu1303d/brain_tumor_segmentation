@@ -1,0 +1,6 @@
+# base config
+
+data_preprocessing:
+  root_dir: artifacts/data_preprocessing
+  data_path: artifacts/data
+  preprocessed_data_path: artifacts/data_preprocessing/processed_data

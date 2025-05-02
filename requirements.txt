@@ -6,7 +6,6 @@ seaborn
 scikit-learn
 matplotlib
 tqdm
-einops
 
 # Add build dependencies to avoid errors
 setuptools
@@ -28,18 +27,14 @@ dvc
 # User interface
 streamlit
 
-# Image Augmentation & Preprocessing
-albumentations
-opencv-python
-
-# Miscellaneous utils
+# Miscellaneous and utils
 jupyter
 notebook
 python-box
 pyYAML
 ensure
-joblib
 python-dotenv
+einops
 
 # code formatting
 black
