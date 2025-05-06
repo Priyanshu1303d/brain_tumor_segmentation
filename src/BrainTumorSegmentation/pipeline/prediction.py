@@ -12,6 +12,7 @@ from monai.transforms import (
     LoadImage,
     Resize,
     ScaleIntensity,
+    Spacing
 )
 
 # constants
@@ -41,6 +42,7 @@ class Prediction:
             [
                 LoadImage(image_only=True),
                 EnsureChannelFirst(),
+                Spacing(pixdim=(1.0, 1.0, 1.0), mode=("bilinear")),
                 Resize(IMG_SIZE),
                 ScaleIntensity(),
             ]
