@@ -5,8 +5,8 @@ stages:
     deps:
     - path: config/config.yaml
       hash: md5
-      md5: b080eb0578a420bd052bae90f9141eb2
-      size: 173
+      md5: 185a9f0009a314502bdf46c55b91ab2c
+      size: 284
     - path: src/BrainTumorSegmentation/components/data_preprocessing.py
       hash: md5
       md5: cca45cd444f7fba465129ec6314fbfc1
@@ -27,3 +27,32 @@ stages:
       md5: abef1e63703a40644f6099bd7167d2c6.dir
       size: 4762765706
       nfiles: 8105
+  model_evaluation:
+    cmd: python src/BrainTumorSegmentation/pipeline/stage_03_model_evaluation.py
+    deps:
+    - path: config/config.yaml
+      hash: md5
+      md5: 1779b5cee26c6149356e1166afd01d0e
+      size: 459
+    - path: src/BrainTumorSegmentation/components/model_evaluation.py
+      hash: md5
+      md5: 2732220ffa2809e7b3e4b8d10180612e
+      size: 13852
+    - path: src/BrainTumorSegmentation/pipeline/stage_03_model_evaluation.py
+      hash: md5
+      md5: cd7708f21bf08460d9cf2862dec3a06c
+      size: 1097
+    params:
+      params.yaml:
+        feature_size: 24
+        img_size:
+        - 96
+        - 96
+        - 96
+        num_workers: 4
+    outs:
+    - path: artifacts/model_evaluation/
+      hash: md5
+      md5: 25f82d6780595149332d8df4ef3efc8e.dir
+      size: 24708319
+      nfiles: 247

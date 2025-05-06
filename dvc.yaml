@@ -11,3 +11,32 @@ stages:
     outs:
       - artifacts/data_preprocessing/
 
+  model_training:
+    cmd: python src/BrainTumorSegmentation/pipeline/stage_02_model_training.py
+    deps:
+      - src/BrainTumorSegmentation/pipeline/stage_02_model_training.py
+      - src/BrainTumorSegmentation/components/model_training.py
+      - config/config.yaml
+    params:
+      - img_size
+      - seed
+      - batch_size
+      - num_workers
+      - feature_size
+      - learning_rate
+      - num_epochs
+    outs:
+      - artifacts/model_training/
+
+  model_evaluation:
+    cmd: python src/BrainTumorSegmentation/pipeline/stage_03_model_evaluation.py
+    deps:
+      - src/BrainTumorSegmentation/pipeline/stage_03_model_evaluation.py
+      - src/BrainTumorSegmentation/components/model_evaluation.py
+      - config/config.yaml
+    params:
+      - img_size
+      - num_workers
+      - feature_size
+    outs:
+      - artifacts/model_evaluation/

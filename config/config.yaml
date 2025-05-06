@@ -4,3 +4,12 @@ data_preprocessing:
   root_dir: artifacts/data_preprocessing
   data_path: artifacts/data
   preprocessed_data_path: artifacts/data_preprocessing/processed_data
+
+model_training:
+  root_dir: artifacts/model_training
+  data_path: artifacts/data_preprocessing/processed_data
+
+model_evaluation:
+  root_dir: artifacts/model_evaluation
+  model_path: artifacts/model_training/swin_unetr_model.pth
+  data_path: artifacts/data_preprocessing/processed_data
